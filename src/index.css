@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Theme Colors */
+:root {
+  --primary: #efe7f5; /* Dark Purple */
+  --secondary: #b18cd7; /* Lighter Purple */
+  --background: #efe7f5; /* Deep Dark Background */
+  --text-light: #EDE9FE; /* Light Text */
+  --text-dark: #A78BFA; /* Slightly Darker Purple Text */
+}
+
+/* Body Styling */
+body {
+  @apply bg-[var(--background)] text-[var(--text-light)];
+  font-family: "Poppins", sans-serif;
+}
+
+/* Smooth Transition for All Elements */
+* {
+  @apply transition-all duration-300;
+}
+
+/* Glassmorphism Effect */
+.glass {
+  @apply bg-white/10 backdrop-blur-md shadow-lg rounded-2xl p-6;
+}
+
+/* Button Styling */
+.btn {
+  @apply bg-[var(--primary)] text-white px-5 py-2 rounded-lg shadow-md hover:bg-[var(--secondary)];
+}
