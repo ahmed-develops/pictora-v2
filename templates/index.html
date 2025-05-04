@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Search</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        input, button {
+            padding: 10px;
+            font-size: 16px;
+            margin: 10px;
+        }
+        img {
+            margin-top: 20px;
+            max-width: 80%;
+            height: 80%;
+            display: none;
+            border: 2px solid #333;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Image Search</h1>
+    <input type="text" id="query" placeholder="Enter search term">
+    <button onclick="searchImage()">Search</button>
+
+    <p id="message"></p>
+    <img id="resultImage" src="" alt="Retrieved Image">
+
+    <script>
+        function searchImage() {
+            const query = document.getElementById("query").value;
+            if (!query) {
+                alert("Please enter a search term.");
+                return;
+            }
+
+            document.getElementById("message").textContent = "Searching...";
+            document.getElementById("resultImage").style.display = "none";
+
+            fetch("http://127.0.0.1:5000/search", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ query: query })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.image_url) {
+                    document.getElementById("resultImage").src = data.image_url;
+                    document.getElementById("resultImage").style.display = "block";
+                    document.getElementById("message").textContent = "";
+                } else {
+                    document.getElementById("message").textContent = "No image found.";
+                }
+            })
+            .catch(error => {
+                document.getElementById("message").textContent = "Error retrieving image.";
+                console.error("Error:", error);
+            });
+        }
+    </script>
+
+</body>
+</html>
