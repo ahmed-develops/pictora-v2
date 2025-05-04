@@ -1,3 +1,5 @@
 *node_modules
 dataset
 .env
+__pycache__
+.ropeproject

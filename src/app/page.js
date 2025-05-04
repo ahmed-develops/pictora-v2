@@ -8,9 +8,15 @@ const ModelComparison = () => {
   const router = useRouter();
 
   const imageToTextModels = [
-    { name: "Pictora Vision", endpoint: "http://localhost:8000/generate-pictora-response/" },
+    {
+      name: "Pictora Vision",
+      endpoint: "http://localhost:8000/generate-pictora-response/",
+    },
     { name: "CLIP", endpoint: "http://localhost:8000/generate-clip-response/" },
-    { name: "Janus Pro", endpoint: "http://localhost:8000/generate-janus-response" }
+    {
+      name: "Janus Pro",
+      endpoint: "http://localhost:8000/generate-janus-response",
+    },
   ];
 
   const [prompt, setPrompt] = useState("");
@@ -34,7 +40,7 @@ const ModelComparison = () => {
       const formData = new FormData();
 
       if (model.name === "Pictora Vision" || model.name === "CLIP") {
-        formData.append("api_key", "AIzaSyAjJuSJjXpuCaWdU7HBsszxrmWjjZ8rHC4");
+        formData.append("api_key", process.env.API_KEY);
         formData.append("text_prompt", prompt);
         if (selectedImage) {
           formData.append("image", selectedImage);
@@ -66,10 +72,13 @@ const ModelComparison = () => {
           prevChats.map((chat, index) =>
             index === modelIndex
               ? [
-                ...chat,
-                { user: "You", text: prompt, image: imageUrl },
-                { user: model.name, text: "Please wait, your response is being generated." },
-              ]
+                  ...chat,
+                  { user: "You", text: prompt, image: imageUrl },
+                  {
+                    user: model.name,
+                    text: "Please wait, your response is being generated.",
+                  },
+                ]
               : chat
           )
         );
@@ -91,8 +100,10 @@ const ModelComparison = () => {
               prevChats.map((chat, index) =>
                 index === modelIndex
                   ? chat.map((msg, j) =>
-                    j === chat.length - 1 ? { ...msg, text: formattedText } : msg
-                  )
+                      j === chat.length - 1
+                        ? { ...msg, text: formattedText }
+                        : msg
+                    )
                   : chat
               )
             );
@@ -134,14 +145,17 @@ const ModelComparison = () => {
   return (
     <div className="min-h-screen bg-gray-100 p-4 flex flex-col justify-between">
       <div>
-        <h1 className="text-3xl font-bold text-center mb-8">Model Comparison</h1>
+        <h1 className="text-3xl font-bold text-center mb-8">
+          Model Comparison
+        </h1>
         <button
-          onClick={() => router.push('/to-image')}
+          onClick={() => router.push("/to-image")}
           className="relative px-6 py-3 font-bold text-white bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out transform hover:scale-105"
         >
           Text to Image
-          <span className="transition-transform duration-300 ease-in-out group-hover:-translate-x-1">&nbsp;→</span>
-
+          <span className="transition-transform duration-300 ease-in-out group-hover:-translate-x-1">
+            &nbsp;→
+          </span>
         </button>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {imageToTextModels.map((model, index) => (
@@ -149,10 +163,19 @@ const ModelComparison = () => {
               key={index}
               className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col h-[calc(90vh-140px)] overflow-auto"
             >
-              <h2 className="text-2xl font-semibold mb-4 text-center">{model.name}</h2>
+              <h2 className="text-2xl font-semibold mb-4 text-center">
+                {model.name}
+              </h2>
               <div className="flex-grow bg-gray-50 p-3 rounded-md h-full overflow-auto border border-gray-300">
                 {chats[index].map((chat, i) => (
-                  <div key={i} className={`mb-2 p-2 rounded-md ${chat.user === "You" ? "bg-blue-100 text-right" : "bg-gray-200"}`}>
+                  <div
+                    key={i}
+                    className={`mb-2 p-2 rounded-md ${
+                      chat.user === "You"
+                        ? "bg-blue-100 text-right"
+                        : "bg-gray-200"
+                    }`}
+                  >
                     <strong>{chat.user}: </strong>
                     {chat.user === model.name ? (
                       // Use dangerouslySetInnerHTML to render formatted response
@@ -160,10 +183,15 @@ const ModelComparison = () => {
                     ) : (
                       chat.text
                     )}
-                    {chat.image && <img src={chat.image} alt="Sent" className="mt-2 rounded-lg max-w-full h-auto" />}
+                    {chat.image && (
+                      <img
+                        src={chat.image}
+                        alt="Sent"
+                        className="mt-2 rounded-lg max-w-full h-auto"
+                      />
+                    )}
                   </div>
                 ))}
-
               </div>
             </div>
           ))}
@@ -177,7 +205,13 @@ const ModelComparison = () => {
           onChange={handlePromptChange}
           onKeyDown={handleKeyPress}
         />
-        <input type="file" id="imageUpload" onChange={handleFileChange} accept="image/*" className="hidden" />
+        <input
+          type="file"
+          id="imageUpload"
+          onChange={handleFileChange}
+          accept="image/*"
+          className="hidden"
+        />
         <label htmlFor="imageUpload" className="cursor-pointer p-2 relative">
           <Paperclip size={24} color="black" />
           {imageCount > 0 && (
@@ -186,15 +220,27 @@ const ModelComparison = () => {
             </span>
           )}
         </label>
-        <input type="file" id="imageUpload" onChange={handleFileChange} accept="image/*" className="hidden" />
+        <input
+          type="file"
+          id="imageUpload"
+          onChange={handleFileChange}
+          accept="image/*"
+          className="hidden"
+        />
 
         {/* Show remove button if an image is selected */}
         {selectedImage && (
-          <button onClick={handleRemoveImage} className="ml-2 p-1 bg-gray-200 rounded-full hover:bg-gray-300">
+          <button
+            onClick={handleRemoveImage}
+            className="ml-2 p-1 bg-gray-200 rounded-full hover:bg-gray-300"
+          >
             ❌
           </button>
         )}
-        <button className="text-blue-500 hover:text-blue-700 p-2" onClick={handleSendPrompt}>
+        <button
+          className="text-blue-500 hover:text-blue-700 p-2"
+          onClick={handleSendPrompt}
+        >
           <Send size={24} />
         </button>
       </div>
