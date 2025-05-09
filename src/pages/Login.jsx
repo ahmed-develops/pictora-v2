@@ -1,7 +1,47 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function Login() {
+  const navigate = useNavigate()
+
+  const [username, setUsername] = useState("")
+  const [password, setPassword] = useState("")
+
+  const formData = new FormData();
+
+  const login = (event) => {
+    event.preventDefault();
+
+    formData.append("username", username);
+    formData.append("password", password);
+
+    fetch("http://localhost:5000/v2/pictora/login", {
+      method: "POST",
+      body: formData,
+      mode: "cors"
+    })
+      .then(loginApiResponse => {
+        if (!loginApiResponse.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return loginApiResponse.json();
+      })
+      .then(response => {
+        if (response.status) {
+          alert("Login successful!");
+          // ensure router.push exists and is valid
+          navigate('/chat')
+        } else {
+          alert("Login failed. Invalid credentials.");
+        }
+      })
+      .catch(error => {
+        alert(error);
+      });    
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100">
       <div className="bg-white p-8 rounded-xl shadow-lg w-96 text-center">
@@ -25,19 +65,23 @@ function Login() {
           <div className="relative text-sm text-gray-500 bg-white px-2 inline-block">or</div>
         </div>
 
-        {/* Email & Password Login Form */}
         <form>
           <input
-            type="email"
-            placeholder="Email"
+            type="username"
+            placeholder="username"
             className="w-full border border-gray-300 rounded-md px-4 py-2 mb-3 focus:outline-none focus:ring-2 focus:ring-gray-400"
+            value={formData.username}
+            onChange={(u) => setUsername(u.target.value)}
           />
           <input
             type="password"
             placeholder="Password"
             className="w-full border border-gray-300 rounded-md px-4 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-gray-400"
+            value={formData.password}
+            onChange={(p) => setPassword(p.target.value)}
           />
           <motion.button
+            onClick={login}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="w-full bg-gray-600 text-white px-4 py-2 rounded-md font-medium hover:bg-gray-700 transition-all"

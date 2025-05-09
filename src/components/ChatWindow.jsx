@@ -13,46 +13,45 @@ function ChatWindow() {
 
   const sendMessage = async () => {
     if (!input.trim() && !uploadedImage) return;
-
+  
     const userMessage = {
       role: "user",
       content: input,
       image: uploadedImage,
     };
-
+  
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
     setInput("");
     setUploadedImage(null);
-
-    const formData = new FormData();
+  
     formData.append("prompt", input);
     if (uploadedImage) {
-      formData.append("image", uploadedImage);
+      formData.append("image", uploadedImage);  // Ensure you're sending the file object here
     }
-
+  
     // Add placeholder message
     const loadingMessage = {
       role: "ai",
       content: "Please wait while I generate response for your prompt.",
     };
-
+  
     // Temporarily append loading message and store its index
     setMessages((prev) => [...prev, loadingMessage]);
     const loadingIndex = updatedMessages.length; // last one
-
+  
     try {
       const req = await fetch(
-        "http://localhost:5000/v2/pictora/respond-to-prompt",
+        "http://127.0.0.1:5000/v2/pictora/respond-to-prompt",
         {
           method: "POST",
           body: formData,
         }
       );
-
+  
       const res = await req.json();
       console.log(res);
-
+  
       // Prepare actual message
       const responseMessage = {
         role: "ai",
@@ -60,7 +59,7 @@ function ChatWindow() {
           ? `${res.image_url}`
           : res.response || res.error || "Something went wrong.",
       };
-
+  
       // Replace the loading message
       setMessages((prev) => {
         const updated = [...prev];
@@ -80,17 +79,15 @@ function ChatWindow() {
       });
     }
   };
-
+  
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setUploadedImage(reader.result);
-      };
-      reader.readAsDataURL(file);
+      setUploadedImage(file);  // Store the file object directly
     }
   };
+  
+  
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -160,23 +157,21 @@ function ChatWindow() {
                       {msg.image && (
                         <div className="relative rounded-lg overflow-hidden">
                           <img
-                            src={msg.image}
+                            src={URL.createObjectURL(msg.image)}
                             alt="Uploaded"
                             className="max-w-full max-h-64 object-contain rounded-lg"
                           />
                         </div>
                       )}
-                      {msg.content?.match(
-                        /\.(jpeg|jpg|gif|png|webp|bmp|svg)$/i
-                      ) ? (
-                        <img
-                          src={msg.content}
-                          alt="Generated"
-                          className="max-w-full max-h-64 object-contain rounded-lg"
-                        />
-                      ) : (
-                        <div className="text-sm">{msg.content}</div>
-                      )}
+                      {msg.content?.match(/\.(jpeg|jpg|gif|png|webp|bmp|svg)$/i) ? (
+  <img
+    src={msg.content} // Assuming msg.content is a URL to the image
+    alt="Generated"
+    className="max-w-full max-h-64 object-contain rounded-lg"
+  />
+) : (
+  <div className="text-sm">{msg.content}</div>
+)}
                     </div>
                     {msg.role === "user" && (
                       <div className="h-8 w-8 rounded-full bg-gray-700 text-white flex items-center justify-center text-xs font-semibold">
@@ -217,22 +212,60 @@ function ChatWindow() {
           </div> */}
 
           {/* Input & Send Button */}
-          <div className="flex items-center gap-3">
-            <input
-              type="text"
-              className="flex-1 p-3 bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 rounded-lg outline-none border border-slate-200 dark:border-slate-600 focus:ring-2 focus:ring-gray/50 transition-all"
-              placeholder="Type a message..."
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-            />
-            <button
-              onClick={sendMessage}
-              className="px-5 py-3 bg-gray-800 text-white rounded-lg shadow-md flex items-center gap-2 hover:bg-gray-700 transition-all active:scale-95"
-            >
-              <Send size={18} /> Send
-            </button>
-          </div>
+          {/* Input, Upload & Send Button */}
+<div className="flex items-center gap-3 relative">
+  {/* Hidden file input */}
+  <input
+    type="file"
+    accept="image/*"
+    style={{ display: "none" }}
+    ref={fileInputRef}
+    onChange={handleImageUpload}
+  />
+
+  {/* Upload Image Button */}
+  <button
+    onClick={() => fileInputRef.current?.click()}
+    className="p-3 bg-gray-100 dark:bg-slate-700 text-slate-900 dark:text-white rounded-lg shadow-md hover:bg-gray-200 dark:hover:bg-slate-600 transition-all"
+    title="Upload Image"
+  >
+    <ImageIcon size={20} />
+  </button>
+
+  {/* Input Field */}
+  <input
+    type="text"
+    className="flex-1 p-3 bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 rounded-lg outline-none border border-slate-200 dark:border-slate-600 focus:ring-2 focus:ring-gray/50 transition-all"
+    placeholder="Type a message..."
+    value={input}
+    onChange={(e) => setInput(e.target.value)}
+    onKeyDown={handleKeyDown}
+  />
+
+  {/* Send Button */}
+  <button
+    onClick={sendMessage}
+    className="px-5 py-3 bg-gray-800 text-white rounded-lg shadow-md flex items-center gap-2 hover:bg-gray-700 transition-all active:scale-95"
+  >
+    <Send size={18} /> Send
+  </button>
+</div>
+
+{/* Preview of Uploaded Image */}
+{uploadedImage && (
+  <div className="mt-2 relative max-w-xs">
+    <img src={URL.createObjectURL(uploadedImage)} />
+
+    <button
+      onClick={clearUploadedImage}
+      className="absolute top-1 right-1 p-1 rounded-full bg-white dark:bg-slate-900 border dark:border-slate-600 shadow hover:bg-red-500 hover:text-white transition-all"
+      title="Remove image"
+    >
+      <X size={16} />
+    </button>
+  </div>
+)}
+
         </div>
       </div>
     </div>

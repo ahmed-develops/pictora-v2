@@ -1,43 +1,36 @@
 from flask import Flask, request, jsonify
-from pathlib import Path
+# from pathlib import Path
 import os
 from dotenv import load_dotenv
 import io
 from PIL import Image
 import google.generativeai as PictoraAPI
-from SEARCH import search_image
+# from SEARCH import search_image
 from flask_cors import CORS
 from GOOGLE import search_google_image
+from pymongo import MongoClient
+from werkzeug import Request
+Request.max_form_parts = 5000 # or whatever your max form size!
 
 load_dotenv()
 
-app = Flask(__name__)
-CORS(app)
+pictora = Flask(__name__)
 
-@app.route("/v2/pictora/respond-to-prompt", methods=["POST"])
+# CORS(pictora, origins=["http://localhost:5173"],)
+# CORS(pictora, resources={r"/*": {"origins": "*"}})
+CORS(pictora, resources={r"/v2/*": {"origins": "http://localhost:5173"}}, supports_credentials=True)
+
+client = MongoClient(os.getenv("MONGODB_URI"))
+db = client['pictora']
+
+@pictora.route("/v2/pictora/respond-to-prompt", methods=["POST"])
 def generate_response_on_user_prompt():
     try:
         prompt = request.form.get("prompt")
-        # mode = request.form.get("mode")
         image = request.files.get("image")
-        print(image)
 
-        # if mode == "tti":
         if image is None:
-        #     print('Prompt sent by the user: ', prompt)
-        #     if not prompt:
-        #         return jsonify({"error": "Prompt text is required"}), 400
-
-        #     image_path = search_image(prompt)
-
-        #     if not image_path:
-        #         return jsonify({"error": "No matching image found"}), 404
-
-        #     if isinstance(image_path, str) and image_path.startswith("http"):
-        #         return jsonify({"image_url": image_path})
-
-        #     image_url = f"/static/retrieved_images/{Path(image_path).name}"
-        #     return jsonify({"image_url": image_url})
+            print("Image is None:", image)
             if not prompt:
                 return jsonify({"error": "No search term provided"}), 400
 
@@ -48,7 +41,6 @@ def generate_response_on_user_prompt():
 
             return jsonify({"image_url": image_url})
         else:
-            # [NOTE] You should load this from environment securely
             PictoraAPI.configure(api_key=os.getenv("PICTORA_API_KEY"))
             model = PictoraAPI.GenerativeModel(os.getenv("PICTORA_MODEL"))
 
@@ -63,5 +55,26 @@ def generate_response_on_user_prompt():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@pictora.route("/v2/pictora/login", methods=["POST"])
+def login_process():   
+    try:
+        collection = db['users']
+        
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        if not username or not password:
+            return jsonify({"error": "Username or password not provided"}), 400
+
+        user_data_list = list(collection.find({"username": username,
+                                               "password": password}, {"_id": 0}))
+        
+        if not user_data_list:
+            return jsonify({"status": False})
+        
+        return jsonify({"status": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    pictora.run(debug=True)
