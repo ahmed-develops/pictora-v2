@@ -5,6 +5,8 @@ import Sidebar from "./components/Sidebar";
 import Settings from "./pages/Settings";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
+import AboutPage from "./pages/AboutPage"; // <-- Import About page
+import ChatWindow from "./pages/Chat";
 
 function App() {
   return (
@@ -15,9 +17,11 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/chat" element={<Chat />} />
+            <Route path="/about" element={<AboutPage />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<Login />} />
+
           </Routes>
         </div>
       </div>

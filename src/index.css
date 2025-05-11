@@ -31,3 +31,8 @@ body {
 .btn {
   @apply bg-[var(--primary)] text-white px-5 py-2 rounded-lg shadow-md hover:bg-[var(--secondary)];
 }
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}

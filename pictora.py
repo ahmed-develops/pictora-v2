@@ -76,5 +76,53 @@ def login_process():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@pictora.route("/v2/pictora/register", methods=["POST"])
+def register_user():
+    try:
+        collection = db['users']
+
+        # Get JSON data
+        data = request.get_json()
+        username = data.get("username")
+        email = data.get("email")
+        password = data.get("password")
+
+        if not username or not email or not password:
+            return jsonify({"status": False, "message": "All fields are required"}), 400
+
+        # Check if user already exists
+        if collection.find_one({"$or": [{"username": username}, {"email": email}]}):
+            return jsonify({"status": False, "message": "Username or email already exists"}), 409
+
+        # Save user to MongoDB
+        collection.insert_one({
+            "username": username,
+            "email": email,
+            "password": password  # In production, hash this!
+        })
+
+        return jsonify({"status": True, "message": "User registered successfully"}), 200
+
+    except Exception as e:
+        return jsonify({"status": False, "message": str(e)}), 500
+
+@pictora.route("/v2/pictora/get-user", methods=["GET"])
+def get_user_info():
+    try:
+        collection = db['users']
+        username = request.args.get("username")
+
+        if not username:
+            return jsonify({"status": False, "message": "Username is required"}), 400
+
+        user = collection.find_one({"username": username}, {"_id": 0, "username": 1, "email": 1})
+        if not user:
+            return jsonify({"status": False, "message": "User not found"}), 404
+
+        return jsonify({"status": True, "user": user})
+    except Exception as e:
+        return jsonify({"status": False, "message": str(e)}), 500
+
+
 if __name__ == "__main__":
     pictora.run(debug=True)
