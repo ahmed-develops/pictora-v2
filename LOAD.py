@@ -9,13 +9,12 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 model, preprocess = clip.load("ViT-B/32", device=device)
 
 def load_database(image_folder="dataset"):
-    """Precompute image embeddings and save them."""
     image_embeddings = {}
     image_count = 0
     
-    for root, _, files in os.walk(image_folder):  # Traverse dataset folder
+    for root, _, files in os.walk(image_folder):  
         for filename in files:
-            if filename.lower().endswith((".png", ".jpg", ".jpeg")):  # Ensure valid image files
+            if filename.lower().endswith((".png", ".jpg", ".jpeg")): 
                 image_path = os.path.join(root, filename)
                 print(f"Processing: {image_path}")
                 
@@ -27,7 +26,6 @@ def load_database(image_folder="dataset"):
                         image_features = model.encode_image(image_input)
                         image_features /= image_features.norm(dim=-1, keepdim=True)
 
-                    # Ensure image_features is properly computed before saving
                     if image_features is None:
                         print(f"Error: image_features is None for {image_path}")
                         continue
