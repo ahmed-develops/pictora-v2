@@ -11,6 +11,7 @@ from GOOGLE import search_google_image
 from pymongo import MongoClient
 from werkzeug import Request
 Request.max_form_parts = 5000 # or whatever your max form size!
+import markdown2
 
 load_dotenv()
 
@@ -22,6 +23,23 @@ CORS(pictora, resources={r"/v2/*": {"origins": "http://localhost:5173"}}, suppor
 
 client = MongoClient(os.getenv("MONGODB_URI"))
 db = client['pictora']
+
+def format_response(text):
+    """Format the response with proper markdown styling"""
+    # Convert markdown to HTML
+    html = markdown2.markdown(text)
+    
+    # Add custom styling
+    styled_html = f"""
+    <div style="
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: #e2e8f0;
+        line-height: 1.6;
+    ">
+        {html}
+    </div>
+    """
+    return styled_html
 
 @pictora.route("/v2/pictora/respond-to-prompt", methods=["POST"])
 def generate_response_on_user_prompt():
@@ -49,11 +67,30 @@ def generate_response_on_user_prompt():
 
             image_bytes = image.read()
             pil_image = Image.open(io.BytesIO(image_bytes))
-
-            response = model.generate_content([prompt, pil_image])
-            return jsonify({"response": response.text})
+            formatted_prompt = f"""
+            Analyze this image and provide a detailed response to: {prompt}
+            
+            Format your response with:
+            - Clear headings in **bold**
+            - Proper paragraph breaks
+            - Bullet points for lists
+            - Emphasis on important terms
+            - Well-structured markdown formatting
+            
+            Ensure the response is:
+            - Comprehensive but concise
+            - Well-organized
+            - Easy to read
+            - Visually appealing when rendered
+            """
+            
+            response = model.generate_content([formatted_prompt, pil_image])
+            formatted_response = format_response(response.text)
+            return jsonify({"response": formatted_response})
+            
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 @pictora.route("/v2/pictora/login", methods=["POST"])
 def login_process():   

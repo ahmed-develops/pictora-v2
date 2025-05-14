@@ -9,7 +9,6 @@ function Chat() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const chatEndRef = useRef(null);
   const fileInputRef = useRef(null);
-  const formData = new FormData();
 
   useEffect(() => {
     setIsLoaded(true);
@@ -44,6 +43,7 @@ function Chat() {
     setInput("");
     setUploadedImage(null);
 
+    const formData = new FormData();
     formData.append("prompt", input);
     if (uploadedImage) {
       formData.append("image", uploadedImage);
@@ -175,18 +175,17 @@ function Chat() {
               </div>
             </div>
 
-            {/* Options Button - Optional */}
+            {/* Options Button */}
             <button
               className="p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors"
               onClick={() => {
-                window.location.href = "/settings"; // Redirect to the /settings page
+                window.location.href = "/settings";
               }}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
               </svg>
             </button>
-
           </div>
 
           {/* Chat Messages */}
@@ -206,15 +205,15 @@ function Chat() {
               messages.map((msg, index) => (
                 <div
                   key={index}
-                  className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"
-                    } ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+                  className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                   style={{ transition: 'all 0.5s ease', transitionDelay: `${0.1 * index}s` }}
                 >
                   <div
-                    className={`max-w-[80%] rounded-2xl p-4 ${msg.role === "user"
+                    className={`max-w-[80%] rounded-2xl p-4 ${
+                      msg.role === "user"
                         ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-900/20"
                         : "bg-gray-800 border border-gray-700 text-white shadow-lg shadow-blue-900/10"
-                      }`}
+                    }`}
                   >
                     <div className="flex items-start gap-3">
                       {msg.role === "ai" && (
@@ -251,7 +250,10 @@ function Chat() {
                             className="max-w-full max-h-64 object-contain rounded-lg"
                           />
                         ) : (
-                          <div className="text-sm">{msg.content}</div>
+                          <div 
+                            className="prose prose-invert max-w-none text-sm"
+                            dangerouslySetInnerHTML={{ __html: msg.content }}
+                          />
                         )}
                       </div>
                       {msg.role === "user" && (
@@ -329,10 +331,11 @@ function Chat() {
               <button
                 onClick={sendMessage}
                 disabled={!input.trim() && !uploadedImage}
-                className={`p-3 rounded-full flex items-center justify-center ${!input.trim() && !uploadedImage
+                className={`p-3 rounded-full flex items-center justify-center ${
+                  !input.trim() && !uploadedImage
                     ? "bg-gray-700 text-gray-500"
                     : "bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600"
-                  } transition-all active:scale-95`}
+                } transition-all active:scale-95`}
               >
                 <Send size={20} />
               </button>
